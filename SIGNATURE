@@ -1,0 +1,31 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.55.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It will check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 f7b4afda970653a89a6d96e655b63b352aec548c Changes
+SHA1 d7021a462f508f67c6d46afc96b465fe7523fc62 MANIFEST
+SHA1 9745deaf07a401e2595fa2519636d2f0634e3895 MANIFEST.SKIP
+SHA1 46c8ef739494522c6587c8c2101734cc4cbf4d01 META.yml
+SHA1 8e6411521e2d9de7edbbaf139e957e569b49fc8f Makefile.PL
+SHA1 7a812368a9d24eb48a043c70461423e1101a863e README
+SHA1 ddb409805f50edbcab6c3e80f277271047103ffd lib/Parse/DNS/Zone.pm
+SHA1 d2fe43164642d9409196eaa4e59907ea437eedfb t/01.t
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkr+BTMACgkQCPS7eH/A+7ozRACg0B3Tws7Utso3JUmeUssA2BBp
+28sAoIACIlgbdhgd7SvHDlvvhRQ3AkC6
+=Pcly
+-----END PGP SIGNATURE-----

@@ -1,0 +1,8 @@
+0.21 2009-11-14
+ - First published version
+ - Fixed a bug in $origin parsing, not possible to have dots in it
+0.20 2009-11-13
+ - Fixed support for multiple RRs with same type for same name
+ - Testing with Test::Distribution
+0.1 2009-09-13
+ - Packaged the module
