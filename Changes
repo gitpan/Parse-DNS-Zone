@@ -1,3 +1,7 @@
+0.22 2009-11-14
+ - Fixed a bug where you can't use @ as an argument to get_rdata
+ - Fixed bug where no parsing of arguments is done on get_rrs() and
+   exists()
 0.21 2009-11-14
  - First published version
  - Fixed a bug in $origin parsing, not possible to have dots in it

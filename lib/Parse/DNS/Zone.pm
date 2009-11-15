@@ -20,7 +20,6 @@ Parse::DNS::Zone - DNS Zone File Parser
  my $zone = Parse::DNS::Zone->new(
  	zonefile=>'db.example',
  	origin=>'example.org.',
-	require_soa=>1,
  );
 
  my $a_rr = $zone->get_rdata('foo', 'A');
@@ -57,7 +56,7 @@ Parse::DNS::Zone does not support $GENERATE in this version.
 =cut 
 
 package Parse::DNS::Zone;
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 use warnings;
 use strict;
 use Carp;
@@ -90,7 +89,7 @@ Path to the zonefile being parsed
 =item * B<require_soa>
 
 If set to a value other than 0, the parser will whine and die if 
-the zonefile doesn't contain a SOA record. (Default: no)
+the zonefile doesn't contain a SOA record. (Default: yes)
 
 =back
 
@@ -147,9 +146,10 @@ sub get_rdata {
 	my $rr = $h->{rr};
 	my $name = $h->{name};
 
-	$name=~s/^\@ /$self->{origin} /g;
-	$name=~s/ \@ / $self->{origin} /g;
-	$name=~s/ \@$/ $self->{origin}/g;
+	$name=~s/^\@$/$self->{origin}/g;
+	$name=~s/\.\@\./\.$self->{origin}/g;
+	$name=~s/\.\@$/\.$self->{origin}/g;
+	$name=~s/\@\.$/\.$self->{origin}/g;
 	$name .= ".$self->{origin}" if(($name ne $self->{origin}) && 
 	                               (!($name=~/\.$/)));
 
@@ -166,6 +166,13 @@ sub exists {
 	my $self = shift;
 	my $name = shift;
 
+	$name=~s/^\@$/$self->{origin}/g;
+	$name=~s/\.\@\./\.$self->{origin}/g;
+	$name=~s/\.\@$/\.$self->{origin}/g;
+	$name=~s/\@\.$/\.$self->{origin}/g;
+	$name .= ".$self->{origin}" if(($name ne $self->{origin}) && 
+	                               (!($name=~/\.$/)));
+
 	return exists $self->{zone}{lc $name};
 }
 
@@ -179,6 +186,13 @@ sub get_rrs {
 	my $self = shift;
 	my $name = shift;
 	my @rrs;
+
+	$name=~s/^\@$/$self->{origin}/g;
+	$name=~s/\.\@\./\.$self->{origin}/g;
+	$name=~s/\.\@$/\.$self->{origin}/g;
+	$name=~s/\@\.$/\.$self->{origin}/g;
+	$name .= ".$self->{origin}" if(($name ne $self->{origin}) && 
+	                               (!($name=~/\.$/)));
 
 	foreach my $k (keys %{$self->{zone}{lc $name}}) {
 		push @rrs, $k;
@@ -205,9 +219,10 @@ sub get_dupes {
 	my $name = $h->{name};
 	my $rr = $h->{rr};
 
-	$name=~s/^\@ /$self->{origin} /g;
-	$name=~s/ \@ / $self->{origin} /g;
-	$name=~s/ \@$/ $self->{origin}/g;
+	$name=~s/^\@$/$self->{origin}/g;
+	$name=~s/\.\@\./\.$self->{origin}/g;
+	$name=~s/\.\@$/\.$self->{origin}/g;
+	$name=~s/\@\.$/\.$self->{origin}/g;
 	$name .= ".$self->{origin}" if(($name ne $self->{origin}) && 
 	                               (!($name=~/\.$/)));
 
