@@ -1,5 +1,5 @@
 This file contains message digests of all files listed in MANIFEST,
-signed via the Module::Signature module, version 0.55.
+signed via the Module::Signature module, version 0.61.
 
 To verify the content in this distribution, first make sure you have
 Module::Signature installed, then type:
@@ -14,18 +14,25 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 98bef06aed4b878202c745774fa7f854ec28fe2a Changes
-SHA1 d7021a462f508f67c6d46afc96b465fe7523fc62 MANIFEST
-SHA1 9745deaf07a401e2595fa2519636d2f0634e3895 MANIFEST.SKIP
-SHA1 7d7233f1a56ba1e7c435b1098b717264f7af8614 META.yml
-SHA1 8e6411521e2d9de7edbbaf139e957e569b49fc8f Makefile.PL
-SHA1 7a812368a9d24eb48a043c70461423e1101a863e README
-SHA1 89679f231f66f4f90c8aee2df54c312006189f3e lib/Parse/DNS/Zone.pm
-SHA1 d2fe43164642d9409196eaa4e59907ea437eedfb t/01.t
+SHA1 15d47a04126e404ddc89f792b996524b179c6ba6 Changes.pod
+SHA1 f61debfbeccaefe9217f4af07c7ae16299f00e4d LICENSE
+SHA1 22063222cd2513ad0f7c3f67f2c09606100bec3c MANIFEST
+SHA1 c942af58bb500a9d8ac2be78201109f356f67f8d META.yml
+SHA1 16b71c0f7577d7e2bd8b9717a31f87283317b975 Makefile.PL
+SHA1 8b5baaba1621bce2223105276d772afdaf434909 README
+SHA1 2d42c4fbf15fb49e91f04b6450ad833a05ea05da doc/Contributors.pod
+SHA1 7d32d07e28a19d089e77534caa28f07a8c7cb6c5 doc/example.pl
+SHA1 da1361567f9b2cb1e6961f1da96d23f8e03f58bf lib/Parse/DNS/Zone.pm
+SHA1 d2fe43164642d9409196eaa4e59907ea437eedfb t/01-dist.t
+SHA1 c4cc30e75c0943ad7cc5c6c603ecc1de1832dcf6 t/02-coverage.t
+SHA1 d6e086b87819b70b457a4548a74868e4116f1db0 t/02-pod.t
+SHA1 316c4eed6d98ca87c0a7703a3c47aa9218e65761 t/03-parser.t
+SHA1 c4d4ed2eca9d08c2b6af74cf67f006c6cd7ab934 t/data/db.include
+SHA1 4a463620f51a746a909e2a055112de3bbb7426fe t/data/db.simple
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.10 (GNU/Linux)
 
-iEYEARECAAYFAkr+tjAACgkQCPS7eH/A+7reLwCgnlenNySRuYVFvJVn1ppJRYg7
-y5MAn3hPKGV4IcId0zyn+2tS5M7qP3Yn
-=AlH8
+iEYEARECAAYFAkvLIckACgkQCPS7eH/A+7qOQwCfRV0kGy5rpPqWfxLMsOo4IDW9
+hoEAoLNafFXOYf2y2eiYzQxaMwr5osxG
+=vCCt
 -----END PGP SIGNATURE-----

@@ -21,4 +21,4 @@ STATUS
 VERSION NUMBERING
 
   The version numbers should be read as a floating point value,
-  where 0.9 is less than 0.89.
+  where 0.9 is higher than 0.89.

@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # Parse::DNS::Zone - DNS Zone File Parser
 #
-# Copyright (c) 2009 Olof 'zibri' Johansson <zibri@cpan.org>. 
+# Copyright (c) 2009, 2010 - Olof Johansson <zibri@cpan.org>. 
 # All rights reserved.
 #
 # This program is free software; you can redistribute it and/or 
@@ -22,8 +22,8 @@ Parse::DNS::Zone - DNS Zone File Parser
  	origin=>'example.org.',
  );
 
- my $a_rr = $zone->get_rdata('foo', 'A');
- my $mx_rr = $zone->get_rdata('@', 'MX'); # Get the origin's MX
+ my $a_rr = $zone->get_rdata(name=>'foo', rr=>'A');
+ my $mx_rr = $zone->get_rdata(name=>'@', rr=>'MX'); # Get the origin's MX
 
  # Get SOA values
  my $mname = $zone->get_mname();
@@ -56,11 +56,10 @@ Parse::DNS::Zone does not support $GENERATE in this version.
 =cut 
 
 package Parse::DNS::Zone;
-our $VERSION = '0.22';
+our $VERSION = '0.3';
 use warnings;
 use strict;
 use Carp;
-use Data::Dumper;
 
 =head1 CONSTRUCTOR
 
@@ -112,7 +111,6 @@ sub new {
 
 	if($self->{require_soa} && 
 	   (!exists $self->{zone}{$self->{origin}}{soa})) {
-		print Dumper($self->{zone});
 		croak("No SOA in zonefile");
 	}
 
@@ -125,7 +123,7 @@ sub new {
 
 =head2 General
 
-=head3 $zone->get_rdata(name=>$name, rr=>$rr, n=>$n)
+=head3 $zone->get_rdata(name=>$name, rr=>$rr, n=>$n, field=>$field)
 
 Is used to get the data associated with a specific name and rr 
 type. The $name can be as the name appears in the zonefile, 
@@ -134,17 +132,21 @@ zonefile. For multiple RRs for a name, you can specify a $n
 argument to get a specific data set. Default is 0, so if you
 only have one, you don't need to specify this.
 
+The $field is the particular component of the resource record to
+return.  It defaults to 'val', which is the actual value of the
+record. Other possibilities are 'class' (e.g. "IN") and 'ttl'.
+
 =cut
 
 sub get_rdata {
 	my $self = shift;
 	my $h = {
 		n=>0,
+		field=>'rdata',
 		@_,
 	};
 
-	my $rr = $h->{rr};
-	my $name = $h->{name};
+	my ($name, $rr, $field, $n) = @{$h}{qw(name rr field n)};
 
 	$name=~s/^\@$/$self->{origin}/g;
 	$name=~s/\.\@\./\.$self->{origin}/g;
@@ -153,12 +155,12 @@ sub get_rdata {
 	$name .= ".$self->{origin}" if(($name ne $self->{origin}) && 
 	                               (!($name=~/\.$/)));
 
-	return $self->{zone}{lc $name}{lc $rr}{val}[$h->{n}];
+	return $self->{zone}{lc $name}{lc $rr}{lc $field}[$n];
 }
 
 =head3 $zone->exists($name)
 
-Returns non-zero if the name exists, and zero otherwise.
+Returns a true value if the name exists, and false otherwise.
 
 =cut
 
@@ -226,10 +228,10 @@ sub get_dupes {
 	$name .= ".$self->{origin}" if(($name ne $self->{origin}) && 
 	                               (!($name=~/\.$/)));
 
-	return int($self->{zone}{lc $name}{lc $rr}{val});
+	return int(@{$self->{zone}{lc $name}{lc $rr}{rdata}});
 }
 
-=head3 $zone->get_names($name)
+=head3 $zone->get_names( )
 
 Returns a list with all names specified in the zone
 
@@ -258,8 +260,6 @@ sub get_mname {
 	my $self = shift;
 	return $self->{soa}{mname};
 }
-
-=head3 $zone->get_rname( )
 
 =head3 $zone->get_rname( parse=>{0,1} )
 
@@ -315,7 +315,7 @@ Return the RETRY value of a SOA
 
 sub get_retry {
 	my $self = shift;
-	return $self->{soa}{expire};
+	return $self->{soa}{retry};
 }
 
 =head3 $zone->get_expire( )
@@ -354,18 +354,29 @@ sub _parse {
 # Is used internally to parse a zone from a filename. will do some
 # recursion for the $include, so a procedural implementation is needed
 sub _parse_zone {
-	my ($zonefile, $origin) = @_;
+	my ($zonefile, $origin, $def_class, $def_ttl) = @_;
 
-	open ZONE, $zonefile or croak("Could not open $zonefile: $!");
+	my($zonepath) = $zonefile =~ /^(.*\/)/;
+	open(my $zonefh, $zonefile) or croak("Could not open $zonefile: $!");
 
-	my $def_ttl;
 	my $mrow;
 	my $prev;
 	my %zone;
 
-	my $zentry = qr/^(\S+) ((?:\d+ )?)((?:(?:IN|CH|HS) )?)(\S+) (.*)$/;
+	my $zentry = qr/^
+		(\S+)\s+ # name
+		(
+			(?: (?: IN | CH | HS ) \s+ \d+ \s+ ) |
+			(?: \d+ \s+ (?: IN | CH | HS ) \s+ ) |
+			(?: (?: IN | CH | HS ) \s+ ) |
+			(?: \d+ \s+ ) |
+		)? # <ttl> <class> or <class> <ttl>
+		(\S+)\s+ # type
+		(.*) # rdata
+	$/ix;
 	
-	while(<ZONE>) {
+	while(<$zonefh>) {
+		chomp;
 		s/;.*$//;
 		next if /^\s*$/;
 		s/\s+/ /g;
@@ -398,33 +409,65 @@ sub _parse_zone {
 			s/^/$prev/;
 		}
 
-		$origin = $1 if(/^\$ORIGIN ([\w\-\.]+)\s*$/i);
-		$def_ttl = $1 if(/^\$TTL (\d+)\s*$/i);
-		if(/^\$INCLUDE (\S+) (\S+)? .*$/i) {
+		$origin = $1, next if(/^\$ORIGIN ([\w\-\.]+)\s*$/i);
+		$def_ttl = $1, next if(/^\$TTL (\d+)\s*$/i);
+		if(/^\$INCLUDE (\S+)(?: (\S+))?\s*(?:;.*)?$/i) {
 			my $subo=defined $2?$2:$origin;
-			my %subz=_parse_zone($1, $subo);
+
+			my $zfile = $1;
+			if($1 !~ m/^\//) {
+				$zfile = $zonepath.$zfile;
+			}
+
+			my %subz=_parse_zone($zfile,$subo,$def_class,$def_ttl);
 
 			foreach my $k (keys %subz) {
 				$zone{$k}=$subz{$k};
 			}
+			next;
 		}
 
-		my($name,$ttl,$class,$type,$rdata) = /$zentry/i;
-		$ttl = $def_ttl if !$ttl;
+		my($name,$ttlclass,$type,$rdata) = /$zentry/;
+
+		my($ttl, $class);
+		if(defined $ttlclass) {
+			($ttl) = $ttlclass=~/(\d+)/o;
+			($class) = $ttlclass=~/(CH|IN|HS)/io;
+
+			$ttlclass=~s/\d+//;
+			$ttlclass=~s/(?:CH|IN|HS)//;
+			$ttlclass=~s/\s//g;
+			if($ttlclass) {
+				carp "bad rr: $_ (ttlclass: $ttlclass)";
+				next;
+			}
+		}
+
+		$ttl = defined $ttl ? $ttl : $def_ttl;
+		$class = defined $class ? $class : $def_class;
+		$def_class = $class;
 
 		next if (!$name || !$type || !$rdata);
 
-		chop $ttl if $ttl;
-		chop $class if $class;
+		if(not defined $def_class) {
+			carp("no class is set");
+			next;
+		}
+
+		if(not defined $def_ttl) {
+			carp("no ttl is set");
+			next;
+		}
+
 		$prev=$name;
 		$name.=".$origin" if(($name ne $origin) && !($name=~/\.$/));
 
-		push(@{$zone{lc $name}{lc $type}{val}}, $rdata);
-		push(@{$zone{lc $name}{lc $type}{ttl}}, $ttl) if $ttl;
-		push(@{$zone{lc $name}{lc $type}{class}}, $class) if $class;
+		push(@{$zone{lc $name}{lc $type}{rdata}}, $rdata);
+		push(@{$zone{lc $name}{lc $type}{ttl}}, $ttl);
+		push(@{$zone{lc $name}{lc $type}{class}}, $class);
 	}
 
-	close ZONE;
+	close $zonefh;
 	return %zone;
 }
 
@@ -451,7 +494,7 @@ RFC 1034, RFC 1035, Bind Administrator's Guide
 
 =head1 COPYRIGHT
 
-Copyright (c) 2009 Olof 'zibri' Johansson <zibri@cpan.org>. 
+Copyright (c) 2009, 2010 - Olof Johansson <zibri@cpan.org>. 
 All rights reserved.
 
 This program is free software; you can redistribute it and/or 
