@@ -1,7 +1,8 @@
 #!/usr/bin/perl
+# Simple demo of Parse::DNS::Zone, dump zone to stdout in a simple computer
+# parseable format.
 use strict;
 use warnings;
-use feature qw/say/;
 use Parse::DNS::Zone;
 
 if($#ARGV != 1) {
@@ -41,7 +42,7 @@ foreach my $name ($zone->get_names) {
 				n=>$i,
 			);
 
-			say "$name ",uc$class," $ttl ",uc$rr," $rdata";
+			print "$name ",uc$class," $ttl ",uc$rr," $rdata\n";
 		}
 	}
 }

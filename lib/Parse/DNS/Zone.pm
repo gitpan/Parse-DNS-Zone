@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # Parse::DNS::Zone - DNS Zone File Parser
 #
-# Copyright (c) 2009, 2010 - Olof Johansson <zibri@cpan.org>. 
+# Copyright (c) 2009, 2010 - Olof Johansson <olof@cpan.org>. 
 # All rights reserved.
 #
 # This program is free software; you can redistribute it and/or 
@@ -17,18 +17,18 @@ Parse::DNS::Zone - DNS Zone File Parser
 
  use Parse::DNS::Zone;
 
- my $zone = Parse::DNS::Zone->new(
+ my $pdz = Parse::DNS::Zone->new(
  	zonefile=>'db.example',
  	origin=>'example.org.',
  );
 
- my $a_rr = $zone->get_rdata(name=>'foo', rr=>'A');
- my $mx_rr = $zone->get_rdata(name=>'@', rr=>'MX'); # Get the origin's MX
+ my $a_rr = $pdz->get_rdata(name=>'foo', rr=>'A');
+ my $mx_rr = $pdz->get_rdata(name=>'@', rr=>'MX'); # Get the origin's MX
 
- # Get SOA values
- my $mname = $zone->get_mname();
- my $rname = $zone->get_rname();
- my $serial = $zone->get_serial();
+ # Getting SOA values
+ my $mname = $pdz->get_mname();
+ my $rname = $pdz->get_rname();
+ my $serial = $pdz->get_serial();
  # ... etc ...
 
 =head1 DESCRIPTION
@@ -39,15 +39,16 @@ interface. Parse::DNS::Zone doesn't validate rrdata, except for
 SOA, and is used to 1) validate the basic structure of the file 
 and 2) extract rdata so you can parse it and validate it yourself.
 
-Parse::DNS::Zone supports RFC 1034 zones:
+Parse::DNS::Zone supports the zone file format as described in 
+RFC 1034:
 
 =over 4
 
 =item * $INCLUDE
 
-=item * $TTL
-
 =item * $ORIGIN
+
+=item * $TTL (as described in RFC 2308)
 
 =back
 
@@ -56,7 +57,7 @@ Parse::DNS::Zone does not support $GENERATE in this version.
 =cut 
 
 package Parse::DNS::Zone;
-our $VERSION = '0.3';
+our $VERSION = '0.4';
 use warnings;
 use strict;
 use Carp;
@@ -123,14 +124,15 @@ sub new {
 
 =head2 General
 
-=head3 $zone->get_rdata(name=>$name, rr=>$rr, n=>$n, field=>$field)
+=head3 $pdz->get_rdata(name=>$name, rr=>$rr, n=>$n, field=>$field)
 
 Is used to get the data associated with a specific name and rr 
-type. The $name can be as the name appears in the zonefile, 
-or a fqdn (with trailing .) as long as it is tracked by the 
-zonefile. For multiple RRs for a name, you can specify a $n
-argument to get a specific data set. Default is 0, so if you
-only have one, you don't need to specify this.
+type. The $name can be as the name appears in the zonefile, or a 
+fqdn (with trailing .) as long as it is tracked by the zonefile. 
+If the n argument is specified, the n:th RR in the RRset is 
+returned. Otherwise, you'll get a complete list of the RRset if 
+you're in list context, or the first RR if you're in scalar 
+context.
 
 The $field is the particular component of the resource record to
 return.  It defaults to 'val', which is the actual value of the
@@ -141,7 +143,6 @@ record. Other possibilities are 'class' (e.g. "IN") and 'ttl'.
 sub get_rdata {
 	my $self = shift;
 	my $h = {
-		n=>0,
 		field=>'rdata',
 		@_,
 	};
@@ -155,10 +156,12 @@ sub get_rdata {
 	$name .= ".$self->{origin}" if(($name ne $self->{origin}) && 
 	                               (!($name=~/\.$/)));
 
-	return $self->{zone}{lc $name}{lc $rr}{lc $field}[$n];
+	return $self->{zone}{lc $name}{lc $rr}{lc $field}[$n] if defined $n;
+	return @{$self->{zone}{lc $name}{lc $rr}{lc $field}} if wantarray;
+	return $self->{zone}{lc $name}{lc $rr}{lc $field}[0];
 }
 
-=head3 $zone->exists($name)
+=head3 $pdz->exists($name)
 
 Returns a true value if the name exists, and false otherwise.
 
@@ -178,7 +181,7 @@ sub exists {
 	return exists $self->{zone}{lc $name};
 }
 
-=head3 $zone->get_rrs($name)
+=head3 $pdz->get_rrs($name)
 
 Returns a list with all RR types for a specific name
 
@@ -203,7 +206,7 @@ sub get_rrs {
 	return @rrs;
 }
 
-=head3 $zone->get_dupes(name=>$name, rr=>$rr)
+=head3 $pdz->get_dupes(name=>$name, rr=>$rr)
 
 Returns how many RRs of a given type is defined for $name. For a simple
 setup with a single RR for $name, this will return 1. If you have some
@@ -231,7 +234,7 @@ sub get_dupes {
 	return int(@{$self->{zone}{lc $name}{lc $rr}{rdata}});
 }
 
-=head3 $zone->get_names( )
+=head3 $pdz->get_names( )
 
 Returns a list with all names specified in the zone
 
@@ -250,7 +253,7 @@ sub get_names {
 
 =head2 SOA
 
-=head3 $zone->get_mname( )
+=head3 $pdz->get_mname( )
 
 Returns the MNAME part of the SOA.
 
@@ -261,7 +264,7 @@ sub get_mname {
 	return $self->{soa}{mname};
 }
 
-=head3 $zone->get_rname( parse=>{0,1} )
+=head3 $pdz->get_rname( parse=>{0,1} )
 
 Return the RNAME part of the SOA. If parse is set to a value 
 other than 0, the value will be interpreted to show an 
@@ -285,7 +288,7 @@ sub get_rname {
 	return $ret;
 }
 
-=head3 $zone->get_serial( )
+=head3 $pdz->get_serial( )
 
 Return the SERIAL value of a SOA.
 
@@ -296,7 +299,7 @@ sub get_serial {
 	return $self->{soa}{serial};
 }
 
-=head3 $zone->get_refresh( )
+=head3 $pdz->get_refresh( )
 
 Return the REFRESH value of a SOA
 
@@ -307,7 +310,7 @@ sub get_refresh {
 	return $self->{soa}{refresh};
 }
 
-=head3 $zone->get_retry( )
+=head3 $pdz->get_retry( )
 
 Return the RETRY value of a SOA
 
@@ -318,7 +321,7 @@ sub get_retry {
 	return $self->{soa}{retry};
 }
 
-=head3 $zone->get_expire( )
+=head3 $pdz->get_expire( )
 
 Return the EXPIRE value of a SOA
 
@@ -329,7 +332,7 @@ sub get_expire {
 	return $self->{soa}{expire};
 }
 
-=head3 $zone->get_minimum( )
+=head3 $pdz->get_minimum( )
 
 Return the MINIMUM value of a SOA
 
@@ -494,7 +497,7 @@ RFC 1034, RFC 1035, Bind Administrator's Guide
 
 =head1 COPYRIGHT
 
-Copyright (c) 2009, 2010 - Olof Johansson <zibri@cpan.org>. 
+Copyright (c) 2009, 2010 - Olof Johansson <olof@cpan.org>. 
 All rights reserved.
 
 This program is free software; you can redistribute it and/or 

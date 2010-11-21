@@ -1,5 +1,5 @@
 #!/usr/bin/perl 
-use Test::More tests => 34;
+use Test::More tests => 35;
 
 BEGIN { use_ok('Parse::DNS::Zone') }
 
@@ -131,6 +131,15 @@ is(
 	3,
 	"expected number of dupes for test-dupes"
 );
+
+{ 
+	my @test = $zone->get_rdata(name=>'test-dupes', rr=>'A'); 
+	is(
+		int @test,
+		3,
+		'expected list from get_rdata(test-dupes) '.(@test)
+	);
+}
 
 is($zone->get_mname, $zone_simple{mname}, "expected MNAME");
 is($zone->get_rname, $zone_simple{rname}, "expected RNAME");

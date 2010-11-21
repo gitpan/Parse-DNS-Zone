@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile (
 	NAME => 'Parse::DNS::Zone',
-	AUTHOR => 'Olof Johansson <zibri@cpan.org>',
+	AUTHOR => 'Olof Johansson <olof@cpan.org>',
 	LICENSE => 'perl',
 	ABSTRACT_FROM => 'lib/Parse/DNS/Zone.pm',
 	VERSION_FROM => 'lib/Parse/DNS/Zone.pm',

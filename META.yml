@@ -1,9 +1,9 @@
 --- #YAML:1.0
 name:               Parse-DNS-Zone
-version:            0.3
+version:            0.4
 abstract:           DNS Zone File Parser
 author:
-    - Olof Johansson <zibri@cpan.org>
+    - Olof Johansson <olof@cpan.org>
 license:            perl
 distribution_type:  module
 configure_requires:

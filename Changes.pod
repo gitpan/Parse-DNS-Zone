@@ -1,5 +1,16 @@
 =head1 Changes in Parse::DNS::Zone
 
+=head2 0.4 (2010-11-21)
+
+=over
+
+=item * get_rdata returns a list of complete RRset in list context.
+B<Please be aware that this may break existing code.> Sorry :-(
+
+=item * Fixes to documentation (new mail address, <olof@cpan.org>)
+
+=back
+
 =head2 0.3 (2010-04-18)
 
 =over
