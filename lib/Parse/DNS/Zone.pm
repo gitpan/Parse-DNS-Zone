@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # Parse::DNS::Zone - DNS Zone File Parser
 #
-# Copyright (c) 2009, 2010 - Olof Johansson <olof@cpan.org>. 
+# Copyright (c) 2009-2011 - Olof Johansson <olof@cpan.org>. 
 # All rights reserved.
 #
 # This program is free software; you can redistribute it and/or 
@@ -57,7 +57,7 @@ Parse::DNS::Zone does not support $GENERATE in this version.
 =cut 
 
 package Parse::DNS::Zone;
-our $VERSION = '0.4';
+our $VERSION = '0.41';
 use warnings;
 use strict;
 use Carp;
@@ -88,8 +88,20 @@ Path to the zonefile being parsed
 
 =item * B<require_soa>
 
-If set to a value other than 0, the parser will whine and die if 
+If set to a true value, the parser will whine and die if 
 the zonefile doesn't contain a SOA record. (Default: yes)
+
+=item * B<append_origin>
+
+If set to a true value, the parser will append the origin
+to all unqualified domain names (in certain record types,
+currently: CNAME, MX, NS, AFSDB, PTR). If some record 
+types are missing from this list, please report that as a
+bug. (Default: no)
+
+This feature do run the risk of becoming stale if new 
+record types are introduced. But if you run into problems,
+don't hesitate to report it!
 
 =back
 
@@ -101,6 +113,7 @@ sub new {
 	my $class = shift;
 	my $self = {
 		require_soa=>1,
+		append_origin=>0,
 		@_
 	};
 
@@ -348,7 +361,9 @@ sub get_minimum {
 # Is used to populate the zone hash used internally. 
 sub _parse {
 	my $self = shift;
-	my %zone = _parse_zone($self->{zonefile}, $self->{origin});
+	my %zone = _parse_zone(
+		$self->{zonefile}, $self->{origin}, $self->{append_origin}
+	);
 
 	undef $self->{zone};
 	$self->{zone}={%zone};
@@ -357,7 +372,8 @@ sub _parse {
 # Is used internally to parse a zone from a filename. will do some
 # recursion for the $include, so a procedural implementation is needed
 sub _parse_zone {
-	my ($zonefile, $origin, $def_class, $def_ttl) = @_;
+	# $def_class and $def_ttl are only given when called for included zones
+	my ($zonefile, $origin, $originappend, $def_class, $def_ttl) = @_;
 
 	my($zonepath) = $zonefile =~ /^(.*\/)/;
 	open(my $zonefh, $zonefile) or croak("Could not open $zonefile: $!");
@@ -422,7 +438,11 @@ sub _parse_zone {
 				$zfile = $zonepath.$zfile;
 			}
 
-			my %subz=_parse_zone($zfile,$subo,$def_class,$def_ttl);
+			my
+				%subz=_parse_zone(
+					$zfile, $subo, $originappend, 
+					$def_class, $def_ttl
+				);
 
 			foreach my $k (keys %subz) {
 				$zone{$k}=$subz{$k};
@@ -463,7 +483,12 @@ sub _parse_zone {
 		}
 
 		$prev=$name;
-		$name.=".$origin" if(($name ne $origin) && !($name=~/\.$/));
+		$name.=".$origin" if $name ne $origin && $name !~ /\.$/;
+
+		if($originappend and $type =~ /^(?:cname|afsdb|mx|ns)$/i and 
+		   $rdata ne $origin and $rdata !~ /\.$/) {
+			$rdata.=".$origin";
+		}
 
 		push(@{$zone{lc $name}{lc $type}{rdata}}, $rdata);
 		push(@{$zone{lc $name}{lc $type}{ttl}}, $ttl);
@@ -497,7 +522,7 @@ RFC 1034, RFC 1035, Bind Administrator's Guide
 
 =head1 COPYRIGHT
 
-Copyright (c) 2009, 2010 - Olof Johansson <olof@cpan.org>. 
+Copyright (c) 2009-2011 - Olof Johansson <olof@cpan.org>. 
 All rights reserved.
 
 This program is free software; you can redistribute it and/or 

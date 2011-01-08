@@ -10,5 +10,6 @@ Especially thanks to:
 
 =item * Mark J. Reed
 
-=back
+=item * Sebastian Hagedorn at Universität zu Köln 
 
+=back

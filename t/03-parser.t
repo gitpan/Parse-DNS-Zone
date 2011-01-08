@@ -1,5 +1,5 @@
 #!/usr/bin/perl 
-use Test::More tests => 35;
+use Test::More tests => 37;
 
 BEGIN { use_ok('Parse::DNS::Zone') }
 
@@ -28,6 +28,7 @@ my %zone_simple = (
 		'test-ttlclass' => [qw/A/],
 		'test-ttlclassr' => [qw/A/],
 		'test-include' => [qw/A AAAA/],
+		'test-origapp' => [qw/CNAME/],
 	},
 );
 
@@ -87,7 +88,7 @@ is(
 is(
 	int($zone->get_names),
 	$zone_simple{size},
-	"expected number of zones"
+	"expected number of names in zone"
 );
 
 ok($zone->exists('test'), "test exists");
@@ -183,5 +184,21 @@ is(
 is(
 	$zone->get_rdata(name=>'test-ttlclassr', rr=>'A', field=>'ttl'), 
 	'400', 'Extract ttl data from rr with class and ttl (reversed)'
+);
+
+is(
+	$zone->get_rdata(name=>'test-origapp', rr=>'CNAME', field=>'rdata'),
+	'test', 'Do not append origin to RDATA if not told to do so'
+);
+
+$zone = Parse::DNS::Zone->new(
+	zonefile=>$zone_simple{file},
+	origin=>$zone_simple{origin},
+	append_origin=>1,
+);
+
+is(
+	$zone->get_rdata(name=>'test-origapp', rr=>'CNAME', field=>'rdata'),
+	"test.$zone_simple{origin}", 'Append origin to RDATA if told to do so'
 );
 

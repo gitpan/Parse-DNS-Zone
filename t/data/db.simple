@@ -34,3 +34,5 @@ test-class		IN	A	127.0.0.1
 test-ttl	400		A	127.0.0.1
 test-ttlclass	400 	IN	A 	127.0.0.1
 test-ttlclassr	IN	400	A 	127.0.0.1
+
+test-origapp			CNAME	test

@@ -1,5 +1,12 @@
 =head1 Changes in Parse::DNS::Zone
 
+=head2 0.41 (2011-01-07)
+
+=item * Origin is now appended in RDATA (thanks to Sebastian 
+Hagedorn at Universität zu Köln).
+
+=item * Some minor documentation fixes
+
 =head2 0.4 (2010-11-21)
 
 =over
