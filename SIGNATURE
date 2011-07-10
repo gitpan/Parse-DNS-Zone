@@ -1,5 +1,5 @@
 This file contains message digests of all files listed in MANIFEST,
-signed via the Module::Signature module, version 0.66.
+signed via the Module::Signature module, version 0.68.
 
 To verify the content in this distribution, first make sure you have
 Module::Signature installed, then type:
@@ -14,25 +14,27 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 f161b1e78700cd40fd3acb4eb529ad63f8f51533 Changes.pod
-SHA1 36b0c6505fed3b84ac655d1d3a97db7d02ea41c9 LICENSE
-SHA1 22063222cd2513ad0f7c3f67f2c09606100bec3c MANIFEST
-SHA1 8956b2fd0e0560e28a03da6b904c2032fee25372 META.yml
+SHA1 560b9f01b9d0b992732b7138bcc34ad70fc8840f Changes
+SHA1 bcf25151d01a207955dbab3ecdbd872ff9cbac04 LICENSE
+SHA1 b88e6db2e9b970e04266f6c0fb0aa984adcb8673 MANIFEST
+SHA1 03676351951bf09e4d3fe4e58c5169ed2ef03041 MANIFEST.SKIP
+SHA1 1e8b5264c4dde1e86b4198ef21559d0e0bbedc4f META.yml
 SHA1 296c4c7cd5546fdd49d383eb2890d5a77a58b802 Makefile.PL
-SHA1 8b5baaba1621bce2223105276d772afdaf434909 README
-SHA1 362e9309638f99aedea334af1fb8b78e4497856e doc/Contributors.pod
+SHA1 823180ae4cbfd1300496a78c2e909ccac140cb70 README
+SHA1 3a3e5f87812aee2e12705e6b20f28d570983a73d doc/Contributors
 SHA1 2403423f3aebb5311cf5d8d73166a8a86849ab46 doc/example.pl
-SHA1 55beef8faf3d945230b2b9df3ba40c12b218c043 lib/Parse/DNS/Zone.pm
+SHA1 cf196a82083a93705bec81484cfe429f805a29cd lib/Parse/DNS/Zone.pm
 SHA1 d2fe43164642d9409196eaa4e59907ea437eedfb t/01-dist.t
 SHA1 c4cc30e75c0943ad7cc5c6c603ecc1de1832dcf6 t/02-coverage.t
 SHA1 d6e086b87819b70b457a4548a74868e4116f1db0 t/02-pod.t
-SHA1 215400e4e3c3b7afc112a1886e49fb9b0d5225ff t/03-parser.t
+SHA1 839c07855d09599f2b068435463775a7f480f0f2 t/03-parser.t
 SHA1 c4d4ed2eca9d08c2b6af74cf67f006c6cd7ab934 t/data/db.include
-SHA1 33ebc87410af310ab001f3958dd5d38cebdb5fbd t/data/db.simple
+SHA1 11164d654d275cf0171d4ff712512e54206d1728 t/data/db.nottl
+SHA1 350e37b7f1e950e339c671a28213c686159c780f t/data/db.simple
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iEYEARECAAYFAk0oYhoACgkQCPS7eH/A+7oS+ACfUGyFphcSSywQTZYDplYPAFRY
-yYUAoNBaMuFLfbRDhOCeVsrjKJMlCVZS
-=L5q5
+iEYEARECAAYFAk4ZfJIACgkQCPS7eH/A+7rUawCdGH7kDz1WI00D2pjILDLg6xpk
+WlsAoKZPbqLTFcV89LBRXb0lKhAWb4Ny
+=KOJ3
 -----END PGP SIGNATURE-----

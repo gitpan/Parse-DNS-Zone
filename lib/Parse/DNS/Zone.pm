@@ -57,7 +57,7 @@ Parse::DNS::Zone does not support $GENERATE in this version.
 =cut 
 
 package Parse::DNS::Zone;
-our $VERSION = '0.41';
+our $VERSION = '0.42';
 use warnings;
 use strict;
 use Carp;
@@ -223,7 +223,7 @@ sub get_rrs {
 
 Returns how many RRs of a given type is defined for $name. For a simple
 setup with a single RR for $name, this will return 1. If you have some
-kind of load balancing or other scheme using mutiple RRs of the same 
+kind of load balancing or other scheme using multiple RRs of the same 
 type this sub will return the number of "dupes".
 
 =cut
@@ -477,7 +477,7 @@ sub _parse_zone {
 			next;
 		}
 
-		if(not defined $def_ttl) {
+		if(not defined $ttl) {
 			carp("no ttl is set");
 			next;
 		}
@@ -519,6 +519,11 @@ sub _parse_soa {
 =head1 SEE ALSO
 
 RFC 1034, RFC 1035, Bind Administrator's Guide
+
+=head1 AVAILABILITY
+
+Latest stable version is available on CPAN. Current development
+version is available on https://github.com/olof/Parse-DNS-Zone.
 
 =head1 COPYRIGHT
 

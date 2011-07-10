@@ -1,5 +1,7 @@
 #!/usr/bin/perl 
-use Test::More tests => 37;
+use strict;
+use warnings;
+use Test::More tests => 42;
 
 BEGIN { use_ok('Parse::DNS::Zone') }
 
@@ -34,6 +36,11 @@ my %zone_simple = (
 
 $zone_simple{size} = int(keys %{$zone_simple{names}});
 
+my %zone_nottl = (
+	file => 't/data/db.nottl',
+	origin => 'example.com.',
+);
+
 if(! -r $zone_simple{file}) {
 	BAIL_OUT("$zone_simple{file} does not exist");
 }
@@ -46,31 +53,31 @@ my $zone = Parse::DNS::Zone->new(
 is(
 	$zone->get_rdata(name=>'@', rr=>'A'),
 	$zone->get_rdata(name=>$zone_simple{origin}, rr=>'A'),
-	"@ translates to origin"
+	"@ should translate to origin"
 );
 
 is(
 	$zone->get_rdata(name=>'@', rr=>'NS'), 
 	'ns1.example.com.', 
-	"get NS rdata, 1"
+	"get NS rdata, ns1"
 );
 
 is(
 	$zone->get_rdata(name=>'@', rr=>'NS', n=>1), 
 	'ns2.example.com.', 
-	"get NS rdata, 2"
+	"get NS rdata, ns2"
 );
 
 is(
 	$zone->get_rdata(name=>'@', rr=>'NS', n=>0), 
-	$zone->get_rdata(name=>'@', rr=>'NS'),
+	scalar $zone->get_rdata(name=>'@', rr=>'NS'),
 	"get NS rr dupe, 0 and implicit is equal"
 );
 
 is(
 	$zone->get_dupes(name=>'@', rr=>'NS'),
 	2,
-	"get_dupes()"
+	"get number of duplicate rrs with get_dupes()"
 );
 
 is(
@@ -82,7 +89,7 @@ is(
 is(
 	$zone->get_rdata(name=>'@', rr=>'MX'), 
 	'10 mail1.example.com.', 
-	'MX rdata with whitespace'
+	'get MX rdata with whitespace'
 );
 
 is(
@@ -91,11 +98,27 @@ is(
 	"expected number of names in zone"
 );
 
-ok($zone->exists('test'), "test exists");
-ok($zone->exists('test.example.com.'), "test.example.com. exists");
-ok(! $zone->exists('.'), "root (.) does not exists in zone");
-ok(! $zone->exists('fail'), "non existent domain does not exist");
-ok(! $zone->exists('fail.example.com.'), "non existent domain does not exist");
+ok($zone->exists('NS1.EXAMPLE.COM.'), "Case insensitivity 1");
+ok($zone->exists('NS1.ExamplE.COM.'), "Case insensitivity 2");
+is(
+	$zone->get_rdata(name=>'NS1.ExaMplE.coM.', rr=>'a'),
+	$zone->get_rdata(name=>'ns1.example.com.', rr=>'A'),
+	'Case insensitivity 3',
+);
+
+ok($zone->exists('test'), "label test should exist");
+ok($zone->exists('test.example.com.'), "test.example.com. should exist");
+ok(! $zone->exists('.'), "root (.) should not exist in zone");
+ok(! $zone->exists('fail'), "non existent domain should not exist");
+ok(
+	! $zone->exists('fail.example.com.'), 
+	"non existent domain should not exist (fqdn)"
+);
+
+ok(
+	! $zone->get_rdata(name=>'example.com.', rr=>'TXT'), 
+	'commented out rr should not exist'
+);
 
 is(
 	int($zone->get_rrs('test')),
@@ -144,17 +167,22 @@ is(
 
 is($zone->get_mname, $zone_simple{mname}, "expected MNAME");
 is($zone->get_rname, $zone_simple{rname}, "expected RNAME");
+
 {
 	my($rname) = $zone_simple{rname};
 	$rname=~s/\./@/;
-	is($zone->get_rname(parse=>1), $rname, "expected RNAME (with parsing)");
+	is(
+		$zone->get_rname(parse=>1), 
+		$rname, 
+		"expected RNAME (with parsing)"
+	);
 }
 
-is($zone->get_serial, $zone_simple{serial}, "expected serial");
-is($zone->get_refresh, $zone_simple{refresh}, "expected refresh");
-is($zone->get_retry, $zone_simple{retry}, "expected retry");
-is($zone->get_expire, $zone_simple{expire}, "expected expire");
-is($zone->get_minimum, $zone_simple{minimum}, "expected minimum");
+is($zone->get_serial, $zone_simple{serial}, "SOA serial");
+is($zone->get_refresh, $zone_simple{refresh}, "SOA refresh");
+is($zone->get_retry, $zone_simple{retry}, "SOA retry");
+is($zone->get_expire, $zone_simple{expire}, "SOA expire");
+is($zone->get_minimum, $zone_simple{minimum}, "SOA minimum");
 
 is(
 	$zone->get_rdata(name=>'test-class', rr=>'A', field=>'class'), 
@@ -200,5 +228,13 @@ $zone = Parse::DNS::Zone->new(
 is(
 	$zone->get_rdata(name=>'test-origapp', rr=>'CNAME', field=>'rdata'),
 	"test.$zone_simple{origin}", 'Append origin to RDATA if told to do so'
+);
+
+ok(
+	eval { Parse::DNS::Zone->new(
+		zonefile => $zone_nottl{file},
+		origin => $zone_nottl{origin},
+	)},
+	'Should be possible to load zones without $TTL',
 );
 
